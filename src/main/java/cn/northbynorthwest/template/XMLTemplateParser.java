@@ -1,5 +1,7 @@
 package cn.northbynorthwest.template;
 
+import cn.northbynorthwest.constants.Constant;
+import cn.northbynorthwest.utils.LoadPropertiesFileUtil;
 import cn.northbynorthwest.utils.PathParserUtil;
 import lombok.Getter;
 import org.dom4j.Document;
@@ -23,7 +25,7 @@ import java.util.List;
 @Getter
 public class XMLTemplateParser {
     private static XMLTemplateParser xmlFileParser = null;
-    private List<WebSiteTemplate> siteTemplates = null;
+    private List<BookSiteTemplate> siteTemplates = null;
     public static XMLTemplateParser getInstance()
     {
         synchronized (XMLTemplateParser.class){
@@ -60,22 +62,24 @@ public class XMLTemplateParser {
         Document document;
         try {
             document = reader.read(fileName);
-            List nodes = document.getRootElement().elements("template");
+            List nodes = document.getRootElement().elements(LoadPropertiesFileUtil.getStringValue(Constant.SITE_TEMPLATE_DIV));
             for(Iterator it = nodes.iterator(); it.hasNext();) {
                 Element element = (Element) it.next();
-                String siteName = element.attributeValue("siteName");
-                String siteId = element.attributeValue("siteId");
-                String encoding = element.attributeValue("encoding");
+                String siteName = element.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_SITENAME_ATTR));
+                String siteId = element.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_SITEID_ATTR));
+                String encoding = element.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_ENCODING_ATTR));
+                String domin = element.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_DOMIN_ATTR));
 
-                WebSiteTemplate webSiteTemplate = new WebSiteTemplate();
-                webSiteTemplate.setSiteId(siteId);
-                webSiteTemplate.setSiteName(siteName);
-                webSiteTemplate.setEncoding(encoding);
+                BookSiteTemplate bookSiteTemplate = new BookSiteTemplate();
+                bookSiteTemplate.setSiteId(siteId);
+                bookSiteTemplate.setSiteName(siteName);
+                bookSiteTemplate.setEncoding(encoding);
+                bookSiteTemplate.setDomin(domin);
 
-                Element contentPagesElem = element.element("pages");
-                webSiteTemplate.parserPages(contentPagesElem);
+                Element contentPagesElem = element.element(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_ROOT));
+                bookSiteTemplate.parserPages(contentPagesElem);
 
-                this.siteTemplates.add(webSiteTemplate);
+                this.siteTemplates.add(bookSiteTemplate);
             }
         } catch (DocumentException e) {
             e.printStackTrace();

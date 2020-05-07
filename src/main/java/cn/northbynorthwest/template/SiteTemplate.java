@@ -1,6 +1,8 @@
 package cn.northbynorthwest.template;
 
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+import org.dom4j.Element;
 
 /**
  * “Go Further进无止境” <br>
@@ -10,9 +12,13 @@ import java.util.List;
  * @create 2020/5/7
  * @since 1.0.0
  */
+@Getter
+@Setter
 public abstract class SiteTemplate {
-    public String siteId;
-    public String siteName;
-    public String encoding;
+    private String siteId;
+    private String siteName;
+    private String encoding;
+    private String domin;
 
+    public abstract void parserPages(Element element);
 }

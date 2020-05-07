@@ -1,23 +1,53 @@
 <templates>
 	<template siteId='10001' siteName='起点中文网' encoding='utf-8' domin='https://www.qidian.com/'>
-		<contentpages>
-			<contentpage regexUrl='' request='get' responseBody='html'>
-
-			</contentpage>
-		</contentpages>
-		<chapterpages>
-			<chapterpage regexUrl='' request='get' responseBody='html'>
-			</chapterpage>
-		</chapterpages>
+		<pages>
+			<page attribute='contentpage' regexUrl='' request='get' responseBody='html'>
+				<bookName></bookName>
+				<author></author>
+				<pseudonym></pseudonym>
+				<bookId></bookId>
+				<bookUrl></bookUrl>
+				<isFinish></isFinish>
+				<wordCounts></wordCounts>
+				<price></price>
+				<tag></tag>
+				<className></className>
+				<introduction></introduction>
+				<chapterListUrl></chapterListUrl>
+			</page>
+			<page attribute='chapterpage' regexUrl='' request='get' responseBody='html'>
+				<chapterName></chapterName>
+				<chapterId></chapterId>
+				<chapterUrl></chapterUrl>
+				<chapterWordCounts></chapterWordCounts>
+				<writeTime></writeTime>
+			</page>
+		</pages>
 	</template>
 	<template siteId='10002' siteName='起点女生网' encoding='utf-8' domin='https://www.qdmm.com/'>
-		<contentpages>
-			<contentpage regexUrl='' request='get' responseBody='html'>
-			</contentpage>
-		</contentpages>
-		<chapterpages>
-			<chapterpage regexUrl='' request='get' responseBody='html'>
-			</chapterpage>
-		</chapterpages>
+		<pages>
+			<page attribute='contentpage' regexUrl='' request='get' responseBody='html'>
+				<bookName></bookName>
+				<author></author>
+				<pseudonym></pseudonym>
+				<bookId></bookId>
+				<bookUrl></bookUrl>
+				<isFinish></isFinish>
+				<wordCounts></wordCounts>
+				<price></price>
+				<tag></tag>
+				<className></className>
+				<introduction></introduction>
+				<chapterListUrl></chapterListUrl>
+
+			</page>
+			<page attribute='chapterpage' regexUrl='' request='get' responseBody='html'>
+				<chapterName></chapterName>
+				<chapterId></chapterId>
+				<chapterUrl></chapterUrl>
+				<chapterWordCounts></chapterWordCounts>
+				<writeTime></writeTime>
+			</page>
+		</pages>
 	</template>
 </templates>

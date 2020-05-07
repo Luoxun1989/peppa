@@ -1,6 +1,8 @@
 package cn.northbynorthwest.bookcrawlers;
 
+import cn.northbynorthwest.constants.Constant;
 import cn.northbynorthwest.pipeline.ConsolePipeline;
+import cn.northbynorthwest.utils.LoadPropertiesFileUtil;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
@@ -16,7 +18,11 @@ import us.codecraft.webmagic.processor.PageProcessor;
  */
 public class CSDNBlogPageProcessor implements PageProcessor {
 
-    private Site site = Site.me().setRetryTimes(3).setSleepTime(3000);
+    private Site site = Site.me().setRetryTimes(LoadPropertiesFileUtil.getIntValue(Constant.DOWNLOADER_RETRYTIMES))
+            .setSleepTime(LoadPropertiesFileUtil.getIntValue(Constant.DOWNLOADER_SLEEPTIME))
+            .setCycleRetryTimes(LoadPropertiesFileUtil.getIntValue(Constant.DOWNLOADER_CYCLERETRYTIMES))
+            .setRetrySleepTime(LoadPropertiesFileUtil.getIntValue(Constant.DOWNLOADER_RETRYSLEEPTIME))
+            .setTimeOut(LoadPropertiesFileUtil.getIntValue(Constant.DOWNLOADER_TIMEOUT));
 
     @Override
     public void process(Page page) {

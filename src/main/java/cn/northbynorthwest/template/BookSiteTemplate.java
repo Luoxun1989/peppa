@@ -1,5 +1,7 @@
 package cn.northbynorthwest.template;
 
+import cn.northbynorthwest.constants.Constant;
+import cn.northbynorthwest.utils.LoadPropertiesFileUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.dom4j.Element;
@@ -17,32 +19,28 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class WebSiteTemplate {
-    private String siteId;
-    private String siteName;
-    private String encoding;
-    private List<WebPageTemplate> webPageTemplates = null;
+public class BookSiteTemplate extends SiteTemplate{
+    private List<BookPageTemplate> bookPageTemplates = null;
+    private static final String  GET_REQUEST="get";
+    private static final String  HTML_FORMAT="html";
 
-    public WebSiteTemplate() {
+    public BookSiteTemplate() {
 
     }
-    enum PageClass {CONTENTPAGE, CHAPTERPAGE, READINGPAGE, PLAYINGPAGE}
-
+    @Override
     public void parserPages(Element element) {
         if (element == null) {
             return;
         }
-        List<Element> pageElements = element.elements("page");
+        List<Element> pageElements = element.elements(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_DIV));
         for (Element elem : pageElements) {
-            String pageClass = elem.attributeValue("pageClass");
-            if (PageClass.CONTENTPAGE.name().equals(pageClass)) {
+            String pageClass = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_ATTRIBUTE_ATTR));
+            if (PageAttributeEnum.CONTENTPAGE.name().equals(pageClass)) {
                 parserContentPages(elem);
-            } else if (PageClass.CHAPTERPAGE.name().equals(pageClass)) {
+            } else if (PageAttributeEnum.CHAPTERPAGE.name().equals(pageClass)) {
                 parserChapterPages(elem);
-            } else if (PageClass.READINGPAGE.name().equals(pageClass)) {
+            } else if (PageAttributeEnum.READINGPAGE.name().equals(pageClass)) {
                 parserReadingPages(elem);
-            } else if (PageClass.PLAYINGPAGE.name().equals(pageClass)){
-                parserPlayingPages(elem);
             } else {
                 parserDefaultPages(elem);
             }
@@ -60,18 +58,18 @@ public class WebSiteTemplate {
         if (elem == null) {
             return;
         }
-        String regexUrl = elem.attributeValue("regexUrl");
+        String regexUrl = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_REGEXURL_ATTR));
         if (null == regexUrl || regexUrl.isEmpty()) {
             //log
             return;
         }
-        String request = elem.attributeValue("request");
+        String request = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_REQUEST_ATTR));
         if (null == request || request.isEmpty()) {
-            request = "get";
+            request = GET_REQUEST;
         }
-        String responseBody = elem.attributeValue("responseBody");
+        String responseBody = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_RESPONSEBODY_ATTR));
         if (null == responseBody || responseBody.isEmpty()) {
-            responseBody = "html";
+            responseBody = HTML_FORMAT;
         }
         String bookNameXpath = elem.elementTextTrim("bookName");
         String authorXpath = elem.elementTextTrim("pseudonym");
@@ -99,10 +97,10 @@ public class WebSiteTemplate {
             String contentXpath = elem.elementTextTrim("content");
 
             */
-        if (webPageTemplates == null) {
-            webPageTemplates = new ArrayList<>();
+        if (bookPageTemplates == null) {
+            bookPageTemplates = new ArrayList<>();
         }
-        webPageTemplates.add(new WebPageTemplate(responseBody, request));
+        bookPageTemplates.add(new BookPageTemplate(responseBody, request));
 
     }
 
@@ -131,11 +129,11 @@ public class WebSiteTemplate {
         }
         String request = elem.attributeValue("request");
         if (null == request || request.isEmpty()) {
-            request = "get";
+            request = GET_REQUEST;
         }
         String responseBody = elem.attributeValue("responseBody");
         if (null == responseBody || responseBody.isEmpty()) {
-            responseBody = "html";
+            responseBody = HTML_FORMAT;
         }
         
         String chapterNameXpath = elem.elementTextTrim("chapterName");
@@ -145,9 +143,9 @@ public class WebSiteTemplate {
         String chapterUrlXpath = elem.elementTextTrim("chapterUrl");
 
 
-        if (webPageTemplates == null) {
-            webPageTemplates = new ArrayList<>();
+        if (bookPageTemplates == null) {
+            bookPageTemplates = new ArrayList<>();
         }
-        webPageTemplates.add(new WebPageTemplate(responseBody, request));
+        bookPageTemplates.add(new BookPageTemplate(responseBody, request));
     }
 }
