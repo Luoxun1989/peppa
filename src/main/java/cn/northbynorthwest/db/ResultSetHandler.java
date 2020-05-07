@@ -16,5 +16,5 @@ public interface ResultSetHandler<T> {
      * 如果 ResultSet 包含0行，那么实现返回 null 也是合法的
      * 数据库访问出错将会抛出 SQLException 异常
      */
-    T callback(ResultSet rs) throws SQLException;
+    <T> T callback(ResultSet rs) throws SQLException;
 }

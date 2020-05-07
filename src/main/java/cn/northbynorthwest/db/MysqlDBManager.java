@@ -1,6 +1,7 @@
 package cn.northbynorthwest.db;
 
 import cn.northbynorthwest.constants.Constant;
+import cn.northbynorthwest.utils.LoadPropertiesFileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,10 @@ public class MysqlDBManager {
     public Connection getConnection() {
         Connection conn = null;
         try {
-            conn = DriverManager.getConnection(Constant.mysqlUrl, Constant.mysqlUser, Constant.mysqlPassword);
+            conn = DriverManager.getConnection(
+                    LoadPropertiesFileUtil.getStringValue(Constant.JDBC_URL),
+                    LoadPropertiesFileUtil.getStringValue(Constant.JDBC_USER),
+                    LoadPropertiesFileUtil.getStringValue(Constant.JDBC_PASSWORD));
         } catch (SQLException e) {
             logger.error("获取mysql数据库连接失败！");
         }

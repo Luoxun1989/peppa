@@ -1,0 +1,14 @@
+<templates>
+	<template siteId='10001' siteName='起点中文网' encoding='utf-8' domin='https://www.qidian.com/'>
+		<contentpages>
+			<contentpage regexUrl='' request='get' responseBody='html'>
+			</contentpage>
+		</contentpages>
+	</template>
+	<template siteId='10002' siteName='起点女生网' encoding='utf-8' domin='https://www.qdmm.com/'>
+		<contentpages>
+			<contentpage regexUrl='' request='get' responseBody='html'>
+			</contentpage>
+		</contentpages>
+	</template>
+</templates>
