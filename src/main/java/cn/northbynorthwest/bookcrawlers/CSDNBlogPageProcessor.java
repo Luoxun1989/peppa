@@ -20,8 +20,7 @@ public class CSDNBlogPageProcessor implements PageProcessor {
 
     @Override
     public void process(Page page) {
-        page.addTargetRequests(page.getHtml().links().regex("(https://blog\\.csdn\\.net/lizhitao/article/details/\\d+)").all());
-//        page.putField("author_url", page.getUrl().regex("https://github\\.com/(\\w+)/.*").toString());
+        page.addTargetRequests(page.getHtml().links().regex("(https://blog\\.csdn\\.net/^[0-9a-zA-Z_]{1,}$/article/details/\\d+)").all());
         page.putField("author_name", page.getHtml().xpath("//*[@id='mainBox']/main/div[1]/div/div/div[2]/div[1]/div/a[1]").toString());
         page.putField("text_name", page.getHtml().xpath("//*[@id='mainBox']/main/div[1]/div/div/div[1]/h1").toString());
         if (page.getResultItems().get("text_name")==null){
@@ -38,6 +37,6 @@ public class CSDNBlogPageProcessor implements PageProcessor {
         return site;
     }
     public static void main(String[] args) {
-        Spider.create(new CSDNBlogPageProcessor()).addUrl("https://blog.csdn.net/lizhitao").addPipeline(new ConsolePipeline()).thread(5).run();
+        Spider.create(new CSDNBlogPageProcessor()).addUrl("https://blog.csdn.net").addPipeline(new ConsolePipeline()).thread(5).run();
     }
 }
