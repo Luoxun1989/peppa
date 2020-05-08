@@ -19,14 +19,14 @@ import java.util.Map;
 public class BookPageTemplate {
     private Map<String, String> nodeValueMap = null;   //XPATH节点和节点值
     private Map<String, String> nodeXpathMap = null;   //XPATH节点和XPATH路径
-    private String pageType;//json、html、txt格式
-    private String pageClass;//详情页、章节页、阅读页、评论页等
+    private String pageType="html";//json、html、txt格式
+    private String pageAttribute;//详情页、章节页、阅读页、评论页等
+    private String request="get";//页面请求方式  默认get
+    private String regexUrl;//页面统一URL
 
-    public BookPageTemplate(){
-
-    }
-    public BookPageTemplate(String pageType, String pageClass){
+    public BookPageTemplate(String regexUrl, String pageType,String request){
+        this.regexUrl = regexUrl;
         this.pageType = pageType;
-        this.pageClass = pageClass;
+        this.request = request;
     }
 }

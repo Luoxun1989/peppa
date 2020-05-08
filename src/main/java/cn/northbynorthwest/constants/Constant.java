@@ -37,7 +37,7 @@ public interface Constant {
     String SITE_PAGE_ATTRIBUTE_ATTR="site.page.attribute.attr";
     String SITE_PAGE_REGEXURL_ATTR="site.page.regexUrl.attr";
     String SITE_PAGE_REQUEST_ATTR="site.page.request.attr";
-    String SITE_PAGE_RESPONSEBODY_ATTR="site.page.responseBody.attr";
+    String SITE_PAGE_PAGETYPE_ATTR="site.page.pageType.attr";
 
     //book
 

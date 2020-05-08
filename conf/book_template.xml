@@ -1,7 +1,7 @@
 <templates>
 	<template siteId='10001' siteName='起点中文网' encoding='utf-8' domin='https://www.qidian.com/'>
 		<pages>
-			<page attribute='contentpage' regexUrl='' request='get' responseBody='html'>
+			<page attribute='contentpage' regexUrl='' request='get' pageType='html'>
 				<bookName></bookName>
 				<author></author>
 				<pseudonym></pseudonym>
@@ -15,7 +15,7 @@
 				<introduction></introduction>
 				<chapterListUrl></chapterListUrl>
 			</page>
-			<page attribute='chapterpage' regexUrl='' request='get' responseBody='html'>
+			<page attribute='chapterpage' regexUrl='' request='get' pageType='html'>
 				<chapterName></chapterName>
 				<chapterId></chapterId>
 				<chapterUrl></chapterUrl>
@@ -26,7 +26,7 @@
 	</template>
 	<template siteId='10002' siteName='起点女生网' encoding='utf-8' domin='https://www.qdmm.com/'>
 		<pages>
-			<page attribute='contentpage' regexUrl='' request='get' responseBody='html'>
+			<page attribute='contentpage' regexUrl='' request='get' pageType='html'>
 				<bookName></bookName>
 				<author></author>
 				<pseudonym></pseudonym>
@@ -41,7 +41,7 @@
 				<chapterListUrl></chapterListUrl>
 
 			</page>
-			<page attribute='chapterpage' regexUrl='' request='get' responseBody='html'>
+			<page attribute='chapterpage' regexUrl='' request='get' pageType='html'>
 				<chapterName></chapterName>
 				<chapterId></chapterId>
 				<chapterUrl></chapterUrl>

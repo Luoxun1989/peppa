@@ -20,5 +20,5 @@ public abstract class SiteTemplate {
     private String encoding;
     private String domin;
 
-    public abstract void parserPages(Element element);
+    public abstract void parserPagesXpath(Element element);
 }

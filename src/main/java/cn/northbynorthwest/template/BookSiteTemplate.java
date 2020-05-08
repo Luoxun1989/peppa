@@ -7,7 +7,9 @@ import lombok.Setter;
 import org.dom4j.Element;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * “Go Further进无止境” <br>
@@ -19,67 +21,91 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class BookSiteTemplate extends SiteTemplate{
-    private List<BookPageTemplate> bookPageTemplates = null;
-    private static final String  GET_REQUEST="get";
-    private static final String  HTML_FORMAT="html";
+public class BookSiteTemplate extends SiteTemplate {
+    private Map<String, BookPageTemplate> bookPageTemplateMap = null;
+    private static final String GET_REQUEST = "get";
+    private static final String HTML_FORMAT = "html";
 
     public BookSiteTemplate() {
 
     }
+
     @Override
-    public void parserPages(Element element) {
+    public void parserPagesXpath(Element element) {
         if (element == null) {
             return;
         }
         List<Element> pageElements = element.elements(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_DIV));
         for (Element elem : pageElements) {
-            String pageClass = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_ATTRIBUTE_ATTR));
-            if (PageAttributeEnum.CONTENTPAGE.name().equals(pageClass)) {
-                parserContentPages(elem);
-            } else if (PageAttributeEnum.CHAPTERPAGE.name().equals(pageClass)) {
-                parserChapterPages(elem);
-            } else if (PageAttributeEnum.READINGPAGE.name().equals(pageClass)) {
-                parserReadingPages(elem);
+            String pageAttribute = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_ATTRIBUTE_ATTR));
+            if (null == pageAttribute || pageAttribute.isEmpty()) {
+                //log
+                return;
+            }
+            String regexUrl = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_REGEXURL_ATTR));
+            if (null == regexUrl || regexUrl.isEmpty()) {
+                //log
+                return;
+            }
+            String request = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_REQUEST_ATTR));
+            if (null == request || request.isEmpty()) {
+                request = GET_REQUEST;
+            }
+            String pageType = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_PAGETYPE_ATTR));
+            if (null == pageType || pageType.isEmpty()) {
+                pageType = HTML_FORMAT;
+            }
+            if (PageAttributeEnum.CONTENTPAGE.name().equals(pageAttribute)) {
+                parserContentPagesXpath(elem, regexUrl, pageType, request);
+            } else if (PageAttributeEnum.CHAPTERPAGE.name().equals(pageAttribute)) {
+                parserChapterPagesXpath(elem, regexUrl, pageType, request);
+            } else if (PageAttributeEnum.READINGPAGE.name().equals(pageAttribute)) {
+                parserReadingPagesXpath(elem);
             } else {
-                parserDefaultPages(elem);
+                parserDefaultPagesXpath(elem);
             }
         }
 
     }
 
-    private void parserDefaultPages(Element elem) {
+    private void parserDefaultPagesXpath(Element elem) {
         if (elem == null) {
             return;
         }
     }
 
-    private void parserContentPages(Element elem) {
+    private void parserContentPagesXpath(Element elem, String regexUrl, String pageType, String request) {
         if (elem == null) {
             return;
         }
-        String regexUrl = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_REGEXURL_ATTR));
-        if (null == regexUrl || regexUrl.isEmpty()) {
-            //log
-            return;
-        }
-        String request = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_REQUEST_ATTR));
-        if (null == request || request.isEmpty()) {
-            request = GET_REQUEST;
-        }
-        String responseBody = elem.attributeValue(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_RESPONSEBODY_ATTR));
-        if (null == responseBody || responseBody.isEmpty()) {
-            responseBody = HTML_FORMAT;
-        }
+
         String bookNameXpath = elem.elementTextTrim("bookName");
-        String authorXpath = elem.elementTextTrim("pseudonym");
-        String bookidXpath = elem.elementTextTrim("bookId");
+        String authorXpath = elem.elementTextTrim("author");
+        String pseudonymXpath = elem.elementTextTrim("pseudonym");
+        String bookIdXpath = elem.elementTextTrim("bookId");
+        String bookUrlXpath = elem.elementTextTrim("bookUrl");
+        String finishXpath = elem.elementTextTrim("isFinish");
+        String wordCountsXpath = elem.elementTextTrim("wordCounts");
+        String priceXpath = elem.elementTextTrim("price");
         String tagsXpath = elem.elementTextTrim("tags");
         String classNameXpath = elem.elementTextTrim("className");
         String introductionXpath = elem.elementTextTrim("introduction");
-        String finishXpath = elem.elementTextTrim("isFinish");
         String chapterListUrlXpath = elem.elementTextTrim("chapterListUrl");
-
+        BookPageTemplate bookPageTemplate = new BookPageTemplate(regexUrl, pageType, request);
+        Map<String, String> nodeXpathMap = new HashMap<String, String>(10);
+        nodeXpathMap.put("bookName", bookNameXpath);
+        nodeXpathMap.put("author", authorXpath);
+        nodeXpathMap.put("pseudonym", pseudonymXpath);
+        nodeXpathMap.put("bookId", bookIdXpath);
+        nodeXpathMap.put("bookUrl", bookUrlXpath);
+        nodeXpathMap.put("isFinish", finishXpath);
+        nodeXpathMap.put("wordCounts", wordCountsXpath);
+        nodeXpathMap.put("price", priceXpath);
+        nodeXpathMap.put("tags", tagsXpath);
+        nodeXpathMap.put("className", classNameXpath);
+        nodeXpathMap.put("introduction", introductionXpath);
+        nodeXpathMap.put("chapterListUrl", chapterListUrlXpath);
+        bookPageTemplate.setNodeXpathMap(nodeXpathMap);
           /*
 
             String clickCountXpath = elem.elementTextTrim("clickCount");
@@ -97,55 +123,50 @@ public class BookSiteTemplate extends SiteTemplate{
             String contentXpath = elem.elementTextTrim("content");
 
             */
-        if (bookPageTemplates == null) {
-            bookPageTemplates = new ArrayList<>();
+        if (bookPageTemplateMap == null) {
+            bookPageTemplateMap = new HashMap<>();
         }
-        bookPageTemplates.add(new BookPageTemplate(responseBody, request));
+        bookPageTemplateMap.put(PageAttributeEnum.CONTENTPAGE.name(),bookPageTemplate);
 
     }
 
     //TODO
-    private void parserPlayingPages(Element elem) {
-        if (elem == null) {
-            return;
-        }
-    }
-    //TODO
-    private void parserReadingPages(Element elem) {
+    private void parserPlayingPagesXpath(Element elem) {
         if (elem == null) {
             return;
         }
     }
 
-    private void parserChapterPages(Element elem) {
-        
+    //TODO
+    private void parserReadingPagesXpath(Element elem) {
         if (elem == null) {
             return;
         }
-        String regexUrl = elem.attributeValue("regexUrl");
-        if (null == regexUrl || regexUrl.isEmpty()) {
-            //log
+    }
+
+    private void parserChapterPagesXpath(Element elem, String regexUrl, String pageType, String request) {
+
+        if (elem == null) {
             return;
         }
-        String request = elem.attributeValue("request");
-        if (null == request || request.isEmpty()) {
-            request = GET_REQUEST;
-        }
-        String responseBody = elem.attributeValue("responseBody");
-        if (null == responseBody || responseBody.isEmpty()) {
-            responseBody = HTML_FORMAT;
-        }
-        
+
         String chapterNameXpath = elem.elementTextTrim("chapterName");
         String chapterIdXpath = elem.elementTextTrim("chapterId");
         String chapterWordsXpath = elem.elementTextTrim("chapterWords");
         String writeTimeXpath = elem.elementTextTrim("writeTime");
         String chapterUrlXpath = elem.elementTextTrim("chapterUrl");
+        BookPageTemplate bookPageTemplate = new BookPageTemplate(regexUrl, pageType, request);
+        Map<String, String> nodeXpathMap = new HashMap<String, String>(5);
+        nodeXpathMap.put("chapterName", chapterNameXpath);
+        nodeXpathMap.put("chapterId", chapterIdXpath);
+        nodeXpathMap.put("chapterWords", chapterWordsXpath);
+        nodeXpathMap.put("writeTime", writeTimeXpath);
+        nodeXpathMap.put("chapterUrl", chapterUrlXpath);
+        bookPageTemplate.setNodeXpathMap(nodeXpathMap);
 
-
-        if (bookPageTemplates == null) {
-            bookPageTemplates = new ArrayList<>();
+        if (bookPageTemplateMap == null) {
+            bookPageTemplateMap = new HashMap<>();
         }
-        bookPageTemplates.add(new BookPageTemplate(responseBody, request));
+        bookPageTemplateMap.put(PageAttributeEnum.CHAPTERPAGE.name(),bookPageTemplate);
     }
 }

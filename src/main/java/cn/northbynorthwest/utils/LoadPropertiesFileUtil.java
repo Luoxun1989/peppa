@@ -15,7 +15,7 @@ public class LoadPropertiesFileUtil {
     private static Properties prop = new Properties();
     static {
         try {
-            InputStream in = new BufferedInputStream(new FileInputStream(new File("resources/spider.properties")));
+            InputStream in = new BufferedInputStream(new FileInputStream(new File("J:\\workspace\\peppa\\src\\main\\resources\\spider.properties")));
             prop.load(in);
         } catch (FileNotFoundException e) {
             System.out.println("properties文件路径书写有误，请检查！");
