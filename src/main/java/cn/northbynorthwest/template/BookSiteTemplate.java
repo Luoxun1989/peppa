@@ -55,11 +55,12 @@ public class BookSiteTemplate extends SiteTemplate {
             if (null == pageType || pageType.isEmpty()) {
                 pageType = HTML_FORMAT;
             }
-            if (PageAttributeEnum.CONTENTPAGE.name().equals(pageAttribute)) {
+//            System.out.println(regexUrl);
+            if (PageAttributeEnum.CONTENTPAGE.name().equalsIgnoreCase(pageAttribute)) {
                 parserContentPagesXpath(elem, regexUrl, pageType, request);
-            } else if (PageAttributeEnum.CHAPTERPAGE.name().equals(pageAttribute)) {
+            } else if (PageAttributeEnum.CHAPTERPAGE.name().equalsIgnoreCase(pageAttribute)) {
                 parserChapterPagesXpath(elem, regexUrl, pageType, request);
-            } else if (PageAttributeEnum.READINGPAGE.name().equals(pageAttribute)) {
+            } else if (PageAttributeEnum.READINGPAGE.name().equalsIgnoreCase(pageAttribute)) {
                 parserReadingPagesXpath(elem);
             } else {
                 parserDefaultPagesXpath(elem);
@@ -92,6 +93,8 @@ public class BookSiteTemplate extends SiteTemplate {
         String introductionXpath = elem.elementTextTrim("introduction");
         String chapterListUrlXpath = elem.elementTextTrim("chapterListUrl");
         BookPageTemplate bookPageTemplate = new BookPageTemplate(regexUrl, pageType, request);
+
+//        System.out.println(bookNameXpath+".."+priceXpath+"..."+introductionXpath);
         Map<String, String> nodeXpathMap = new HashMap<String, String>(10);
         nodeXpathMap.put("bookName", bookNameXpath);
         nodeXpathMap.put("author", authorXpath);
@@ -152,17 +155,18 @@ public class BookSiteTemplate extends SiteTemplate {
 
         String chapterNameXpath = elem.elementTextTrim("chapterName");
         String chapterIdXpath = elem.elementTextTrim("chapterId");
-        String chapterWordsXpath = elem.elementTextTrim("chapterWords");
+        String chapterWordsXpath = elem.elementTextTrim("chapterWordCounts");
         String writeTimeXpath = elem.elementTextTrim("writeTime");
         String chapterUrlXpath = elem.elementTextTrim("chapterUrl");
         BookPageTemplate bookPageTemplate = new BookPageTemplate(regexUrl, pageType, request);
         Map<String, String> nodeXpathMap = new HashMap<String, String>(5);
         nodeXpathMap.put("chapterName", chapterNameXpath);
         nodeXpathMap.put("chapterId", chapterIdXpath);
-        nodeXpathMap.put("chapterWords", chapterWordsXpath);
+        nodeXpathMap.put("chapterWordCounts", chapterWordsXpath);
         nodeXpathMap.put("writeTime", writeTimeXpath);
         nodeXpathMap.put("chapterUrl", chapterUrlXpath);
         bookPageTemplate.setNodeXpathMap(nodeXpathMap);
+//        System.out.println(chapterNameXpath+".."+chapterWordsXpath+"..."+chapterUrlXpath);
 
         if (bookPageTemplateMap == null) {
             bookPageTemplateMap = new HashMap<>();

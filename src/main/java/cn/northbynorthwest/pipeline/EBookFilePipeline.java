@@ -1,6 +1,8 @@
 package cn.northbynorthwest.pipeline;
 
+import cn.northbynorthwest.bookcrawlers.book.Chapter;
 import cn.northbynorthwest.bookcrawlers.book.ElectronicBook;
+import cn.northbynorthwest.template.PageAttributeEnum;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,15 +28,15 @@ import java.util.Map;
  * @create 2020/4/30
  * @since 1.0.0
  */
-public class FilePipeline extends FilePersistentBase implements Pipeline {
+public class EBookFilePipeline extends FilePersistentBase implements Pipeline {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
 
-    public FilePipeline() {
+    public EBookFilePipeline() {
         this.setPath("/data/webmagic/");
     }
 
-    public FilePipeline(String path) {
+    public EBookFilePipeline(String path) {
         this.setPath(path);
 
     }
@@ -43,18 +45,26 @@ public class FilePipeline extends FilePersistentBase implements Pipeline {
     public void process(ResultItems resultItems, Task task) {
 
         String path = this.path + PATH_SEPERATOR + task.getUUID() + PATH_SEPERATOR + format.format(new Date());
+        this.getFile(path);
         try {
-            PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(this.getFile(path)), "UTF-8"));
-            //+ DigestUtils.md5Hex(resultItems.getRequest().getUrl()
+            PrintWriter printContentWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(
+                    this.getFile(path + PATH_SEPERATOR + PageAttributeEnum.CONTENTPAGE.name())), "UTF-8"));
+            PrintWriter printChapterWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(
+                    this.getFile(path + PATH_SEPERATOR + PageAttributeEnum.CONTENTPAGE.name())), "UTF-8"));
             Iterator var5 = resultItems.getAll().entrySet().iterator();
             while (true) {
                 while (var5.hasNext()) {
                     Map.Entry<String, Object> entry = (Map.Entry) var5.next();
-                    if (entry.getValue() instanceof ElectronicBook){
-                        printWriter.println(entry.getValue().toString());
+                    if (entry.getValue() instanceof ElectronicBook) {
+                        printContentWriter.println(entry.getValue().toString());
+                    } else if (entry.getValue() instanceof Chapter) {
+                        printChapterWriter.println(entry.getValue().toString());
+                    } else {
+                        //do Other
                     }
                 }
-                printWriter.close();
+                printContentWriter.close();
+                printChapterWriter.close();
                 break;
             }
         } catch (IOException var10) {

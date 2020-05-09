@@ -20,7 +20,7 @@ public class ElectronicBook extends AbstractBook {
     private String bookUrl;
     private String siteName;
     // 是否更新完结
-    private String isFinish;
+    private boolean isFinish;
     // 书籍标签
     private String tag;
     // 书籍所属大类
@@ -31,7 +31,8 @@ public class ElectronicBook extends AbstractBook {
     private String chapterListUrl;
 
     public String toString() {
-        return String.format("%s|%s|%s|%s|%s|%s|%s", siteId, siteName, bookId, bookName, pseudonym, bookUrl, introduction);
+        return String.format("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s", siteId, siteName, bookName, author, pseudonym, bookId,
+                bookUrl, isFinish, wordCounts, price, tag, className, chapterListUrl,introduction);
     }
 
     @Override

@@ -10,6 +10,7 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -75,10 +76,12 @@ public class XMLTemplateParser {
                 bookSiteTemplate.setSiteName(siteName);
                 bookSiteTemplate.setEncoding(encoding);
                 bookSiteTemplate.setDomin(domin);
-
-                Element contentPagesElem = element.element(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_ROOT));
-                bookSiteTemplate.parserPages(contentPagesElem);
-
+//                System.out.println(siteId+siteName+encoding+domin);
+                Element pagesElem = element.element(LoadPropertiesFileUtil.getStringValue(Constant.SITE_PAGE_ROOT));
+                bookSiteTemplate.parserPagesXpath(pagesElem);
+                if (this.siteTemplates == null){
+                    siteTemplates = new ArrayList<>(5);
+                }
                 this.siteTemplates.add(bookSiteTemplate);
             }
         } catch (DocumentException e) {

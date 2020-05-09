@@ -1,26 +1,28 @@
 <templates>
 	<template siteId='10001' siteName='起点中文网' encoding='utf-8' domin='https://www.qidian.com/'>
 		<pages>
-			<page attribute='contentpage' regexUrl='' request='get' pageType='html'>
-				<bookName></bookName>
-				<author></author>
-				<pseudonym></pseudonym>
-				<bookId></bookId>
-				<bookUrl></bookUrl>
-				<isFinish></isFinish>
-				<wordCounts></wordCounts>
+			<page attribute='contentpage' regexUrl='(https://book.qidian.com/info/\d+)' request='get' pageType='html'>
+				<bookName>/html/body/div/div[6]/div[1]/div[2]/h1/em</bookName>
+				<author>/html/body/div/div[6]/div[1]/div[2]/h1/span/a</author>
+				<pseudonym>/html/body/div/div[6]/div[1]/div[2]/h1/span/a</pseudonym>
+				<bookId>substring-after(/html/body/div/div[4]/span/a[4]@href,'info/')</bookId>
+				<bookUrl>/html/body/div/div[4]/span/a[4]/@href</bookUrl>
+				<isFinish>/html/body/div/div[6]/div[1]/div[2]/p[1]/span[1]</isFinish>
+				<wordCounts>/html/body/div/div[6]/div[4]/div[2]/div[1]/div/div[2]/ul/li[2]/em</wordCounts>
 				<price></price>
-				<tag></tag>
-				<className></className>
-				<introduction></introduction>
+				<tag>/html/body/div/div[6]/div[4]/div[1]/div[1]/div[2]/ul/li[1]/div/p/a</tag>
+				<className>/html/body/div/div[6]/div[1]/div[2]/p[1]/a</className>
+				<introduction>/html/body/div/div[6]/div[4]/div[1]/div[1]/div[1]/p</introduction>
 				<chapterListUrl></chapterListUrl>
 			</page>
-			<page attribute='chapterpage' regexUrl='' request='get' pageType='html'>
-				<chapterName></chapterName>
-				<chapterId></chapterId>
-				<chapterUrl></chapterUrl>
-				<chapterWordCounts></chapterWordCounts>
-				<writeTime></writeTime>
+			<page attribute='chapterpage' regexUrl='#Catalog' request='get' pageType='html'>
+				<tableMainNode>//*[@id="j-catalogWrap"]/div[1]/div/ul/li</tableMainNode>
+				<bookId4Chapter>substring-after(/html/body/div/div[4]/span/a[4]@href,'info/')</bookId4Chapter>
+				<chapterName>//a/text()</chapterName>
+				<chapterId>substring-after(//a/@data-cid,'chapter/')</chapterId>
+				<chapterUrl>//a/@data-cid</chapterUrl>
+				<chapterWordCounts>substring-after(//a/@title,'章节字数：')</chapterWordCounts>
+				<writeTime>substring-before(substring-after(//a/@title,'首发时间：'),'章节')</writeTime>
 			</page>
 		</pages>
 	</template>
