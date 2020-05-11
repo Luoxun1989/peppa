@@ -9,12 +9,16 @@ import cn.northbynorthwest.template.BookSiteTemplate;
 import cn.northbynorthwest.template.PageAttributeEnum;
 import cn.northbynorthwest.template.XMLTemplateParser;
 import cn.northbynorthwest.utils.LoadPropertiesFileUtil;
-import cn.northbynorthwest.utils.StringMatcherUtil;
+import cn.northbynorthwest.utils.StringOperateUtil;
+import cn.northbynorthwest.utils.XSoupUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
@@ -42,35 +46,51 @@ public class BookPageProcessor implements PageProcessor {
             .setCycleRetryTimes(LoadPropertiesFileUtil.getIntValue(Constant.DOWNLOADER_CYCLERETRYTIMES))
             .setRetrySleepTime(LoadPropertiesFileUtil.getIntValue(Constant.DOWNLOADER_RETRYSLEEPTIME))
             .setTimeOut(LoadPropertiesFileUtil.getIntValue(Constant.DOWNLOADER_TIMEOUT));
-
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static BookSiteTemplate bookSiteTemplate = null;
     private static String contentRegexUrl;
     private static String chapterRegexUrl;
     private static String readingRegexUrl;
     private static String commentRegexUrl;
     private static String rankingRegexUrl;
+    private static String siteEntryUrlPrefix = "http:";
+    private final static String XPATH_SEPARATOR = ";";
+    private final static String DOMIN_URL_PREFIX = "https:";
 
     @Override
     public void process(Page page) {
-
-        List<String> contentUrls = page.getHtml().links().regex(chapterRegexUrl).all();
-        List<String> chapterUrls = new ArrayList<>(10);
-        for (int i = 0; i < contentUrls.size(); i++) {
-            chapterUrls.add(contentUrls.get(i) + chapterRegexUrl);
+        //正常的详情页URL，同时也必须考虑省略http或者https前缀的URL匹配
+        List<String> contentUrls = StringOperateUtil.extractUseMultipleTypeRegexUrl(page,contentRegexUrl,siteEntryUrlPrefix);
+//        page.addTargetRequests(contentUrls);
+        //章节页初始化URL必须以http或者https开头，如果xml文件中regexUrl字段Value不是两者开头，则默认章节页初始化URL是由详情页初始化URL和
+        //Value拼接获得。
+        if (!chapterRegexUrl.startsWith(siteEntryUrlPrefix)) {
+            List<String> chapterUrls = new ArrayList<>(10);
+            if (contentUrls != null && contentUrls.size()>0){
+                for (int i = 0; i < contentUrls.size(); i++) {
+                    chapterUrls.add(contentUrls.get(i).concat(chapterRegexUrl));
+                }
+            }
+            page.addTargetRequests(chapterUrls);
+        } else {
+            //正常的章节URL，同时也必须考虑省略http或者https前缀的URL匹配
+            page.addTargetRequests(StringOperateUtil.extractUseMultipleTypeRegexUrl(page,chapterRegexUrl,siteEntryUrlPrefix));
         }
-        page.addTargetRequests(page.getHtml().links().regex(contentRegexUrl).all());
-//        page.addTargetRequests(page.getHtml().links().regex(chapterRegexUrl).all());
-        page.addTargetRequests(chapterUrls);
+
         String url = page.getUrl().get();
-        if (StringMatcherUtil.match(url, contentRegexUrl)) {
-            parserContentPageInfo(page);
-        } else if (StringMatcherUtil.match(url, chapterRegexUrl)) {
+        logger.info("url of this page: {}, extract new urls size:{}", url, contentUrls.size());
+        //chapter初始化URL如果包含content初始化URL，即chapterRegexUrl包含contentRegexUrl，则必须写在第一个if语句中。
+        if (StringOperateUtil.match(url, !chapterRegexUrl.startsWith(siteEntryUrlPrefix) ? contentRegexUrl.concat(chapterRegexUrl) : chapterRegexUrl)) {
+            logger.info("this is chapter page, execute chapter page parsing");
             parserChapterPageInfo(page);
-        } else if (StringMatcherUtil.match(url, readingRegexUrl)) {
+        } else if (StringOperateUtil.match(url, contentRegexUrl)) {
+            logger.info("this is content page, execute content page parsing");
+            parserContentPageInfo(page);
+        }  else if (StringOperateUtil.match(url, readingRegexUrl)) {
             parserReadingPageInfo(page);//TODO
-        } else if (StringMatcherUtil.match(url, commentRegexUrl)) {
+        } else if (StringOperateUtil.match(url, commentRegexUrl)) {
             parserCommentPageInfo(page);//TODO
-        } else if (StringMatcherUtil.match(url, rankingRegexUrl)) {
+        } else if (StringOperateUtil.match(url, rankingRegexUrl)) {
             parserRankingPageInfo(page);//TODO
         } else {
             parserOthersPageInfo(page);//TODO
@@ -80,13 +100,16 @@ public class BookPageProcessor implements PageProcessor {
 
     private void parserContentPageInfo(Page page) {
 
-        BookPageTemplate bookPageTemplate = this.bookSiteTemplate.getBookPageTemplateMap().get(PageAttributeEnum.CONTENTPAGE.name());
+        BookPageTemplate bookPageTemplate = bookSiteTemplate.getBookPageTemplateMap().get(PageAttributeEnum.CONTENTPAGE.name());
 
         String bookNameXpath = bookPageTemplate.getNodeXpathMap().get("bookName");
         String htmlString = page.getRawText();
         Document document = Jsoup.parse(htmlString);
-
-        String bookName = Xsoup.compile(bookNameXpath).evaluate(document).get();
+        if (null == document) {
+            logger.warn("jsoup parse html body fail");
+            return;
+        }
+        String bookName = XSoupUtil.compile(bookNameXpath, document);
         if (bookName == null || bookName.isEmpty()) {
             page.setSkip(true);
             return;
@@ -106,52 +129,60 @@ public class BookPageProcessor implements PageProcessor {
 
         ElectronicBook eBook = new ElectronicBook();
 
-        eBook.setSiteId(this.bookSiteTemplate.getSiteId());
-        eBook.setSiteName(this.bookSiteTemplate.getSiteName());
+        eBook.setSiteId(bookSiteTemplate.getSiteId());
+        eBook.setSiteName(bookSiteTemplate.getSiteName());
         eBook.setBookName(bookName);
+        eBook.setAuthor(XSoupUtil.compile(authorXpath, document));
+        eBook.setPseudonym(XSoupUtil.compile(pseudonymXpath, document));
+        eBook.setBookUrl(StringOperateUtil.urlCompletenessCheck(page.getUrl().get(),
+                XSoupUtil.compile(bookUrlXpath, document)));
+        eBook.setBookId(XSoupUtil.compile(bookIdXpath, document));
 
-        eBook.setAuthor(Xsoup.compile(authorXpath).evaluate(document).get());
-        eBook.setPseudonym(Xsoup.compile(pseudonymXpath).evaluate(document).get());
-        eBook.setBookId(Xsoup.compile(bookIdXpath).evaluate(document).get());
-        eBook.setBookUrl(Xsoup.compile(bookUrlXpath).evaluate(document).get());
-        eBook.setFinish(StringMatcherUtil.string2Boolean(Xsoup.compile(isFinishXpath).evaluate(document).get()));
-        eBook.setWordCounts(StringMatcherUtil.string2Integer(Xsoup.compile(wordCountsXpath).evaluate(document).get()));
-        eBook.setPrice(StringMatcherUtil.string2Float(Xsoup.compile(priceXpath).evaluate(document).get()));
-        eBook.setTag(Xsoup.compile(tagsXpath).evaluate(document).get());
-        eBook.setClassName(Xsoup.compile(classNameXpath).evaluate(document).get());
-        eBook.setIntroduction(Xsoup.compile(introductionXpath).evaluate(document).get());
-        eBook.setChapterListUrl(Xsoup.compile(chapterListUrlXpath).evaluate(document).get());
-
+        logger.info("main information of this book: {}", eBook.toMainInfoString());
+        eBook.setFinish(StringOperateUtil.string2Boolean(XSoupUtil.compile(isFinishXpath, document)));
+        eBook.setWordCounts(StringOperateUtil.string2Integer(XSoupUtil.compile(wordCountsXpath, document)));
+        eBook.setPrice(StringOperateUtil.string2Float(XSoupUtil.compile(priceXpath, document)));
+        eBook.setTag(XSoupUtil.compile(tagsXpath, document));
+        eBook.setClassName(XSoupUtil.compile(classNameXpath, document));
+        eBook.setIntroduction(XSoupUtil.compile(introductionXpath, document));
+        eBook.setChapterListUrl(XSoupUtil.compile(chapterListUrlXpath, document));
         page.putField(DigestUtils.md5Hex(page.getUrl().get()), eBook);
     }
 
     private void parserChapterPageInfo(Page page) {
-        BookPageTemplate bookPageTemplate = this.bookSiteTemplate.getBookPageTemplateMap().get(PageAttributeEnum.CHAPTERPAGE.name());
+        BookPageTemplate bookPageTemplate = bookSiteTemplate.getBookPageTemplateMap().get(PageAttributeEnum.CHAPTERPAGE.name());
 
         String tableMainNodeXpath = bookPageTemplate.getNodeXpathMap().get("tableMainNode");
 
         String html = page.getRawText();
         Document document = Jsoup.parse(html);
+        String bookIdXpath = bookPageTemplate.getNodeXpathMap().get("bookId4Chapter");
+        String bookId4Chapter = XSoupUtil.compile(bookIdXpath, document);
 
-        if (null == tableMainNodeXpath || tableMainNodeXpath.isEmpty()) {
-            Chapter chapter = extractChapterInfo(bookPageTemplate, document);
+        if (StringUtils.isEmpty(tableMainNodeXpath)) {
+            logger.info("only one chapter in this page, execute parsing");
+            Chapter chapter = extractChapterInfo(bookPageTemplate, document, page);
             if (null == chapter) {
                 page.setSkip(true);
                 return;
             }
+            chapter.setBookId4Chapter(bookId4Chapter);
             page.putField(DigestUtils.md5Hex(chapter.getChapterUrl()), chapter);
         } else {
+            logger.info("all chapters in this page, execute parsing");
             boolean chapterPageIsValid = false;
-            if (tableMainNodeXpath.contains(";")) {
-                String[] tableMainNodeXpathList = tableMainNodeXpath.split(";");
+
+            if (tableMainNodeXpath.contains(XPATH_SEPARATOR)) {
+                String[] tableMainNodeXpathList = tableMainNodeXpath.split(XPATH_SEPARATOR);
                 for (String tableXpath : tableMainNodeXpathList) {
                     List<String> chapterList = Xsoup.compile(tableXpath).evaluate(document).list();
                     for (int i = 0; i < chapterList.size(); i++) {
                         Document doc = Jsoup.parse(chapterList.get(i));
-                        Chapter chapter = extractChapterInfo(bookPageTemplate, doc);
+                        Chapter chapter = extractChapterInfo(bookPageTemplate, doc, page);
                         if (null == chapter) {
                             continue;
                         }
+                        chapter.setBookId4Chapter(bookId4Chapter);
                         chapterPageIsValid = true;
                         page.putField(getKeyChapterUrl(page.getUrl().get(), chapter.getChapterUrl(), chapter.getChapterId(),
                                 chapter.getChapterName()), chapter);
@@ -161,10 +192,11 @@ public class BookPageProcessor implements PageProcessor {
                 List<String> chapterList = Xsoup.compile(tableMainNodeXpath).evaluate(document).list();
                 for (int i = 0; i < chapterList.size(); i++) {
                     Document doc = Jsoup.parse(chapterList.get(i));
-                    Chapter chapter = extractChapterInfo(bookPageTemplate, doc);
+                    Chapter chapter = extractChapterInfo(bookPageTemplate, doc, page);
                     if (null == chapter) {
                         continue;
                     }
+                    chapter.setBookId4Chapter(bookId4Chapter);
                     chapterPageIsValid = true;
                     page.putField(getKeyChapterUrl(page.getUrl().get(), chapter.getChapterUrl(), chapter.getChapterId(),
                             chapter.getChapterName()), chapter);
@@ -186,27 +218,29 @@ public class BookPageProcessor implements PageProcessor {
         }
     }
 
-    private Chapter extractChapterInfo(BookPageTemplate bookPageTemplate, Document document) {
+    private Chapter extractChapterInfo(BookPageTemplate bookPageTemplate, Document document, Page page) {
 
         String chapterNameXpath = bookPageTemplate.getNodeXpathMap().get("chapterName");
-        String bookIdXpath = bookPageTemplate.getNodeXpathMap().get("bookId4Chapter");
+//        String bookIdXpath = bookPageTemplate.getNodeXpathMap().get("bookId4Chapter");
         String chapterIdXpath = bookPageTemplate.getNodeXpathMap().get("chapterId");
         String chapterUrlXpath = bookPageTemplate.getNodeXpathMap().get("chapterUrl");
         String chapterWordCountsXpath = bookPageTemplate.getNodeXpathMap().get("chapterWordCounts");
         String writeTimeXpath = bookPageTemplate.getNodeXpathMap().get("writeTime");
 
-        String chapterName = Xsoup.compile(chapterNameXpath).evaluate(document).get();
+        String chapterName = XSoupUtil.compile(chapterNameXpath, document);
         if (chapterName == null || chapterName.isEmpty()) {
             return null;
         }
         Chapter chapter = new Chapter();
-        chapter.setSiteId(this.bookSiteTemplate.getSiteId());
+        chapter.setSiteId(bookSiteTemplate.getSiteId());
         chapter.setChapterName(chapterName);
-        chapter.setBookId4Chapter(Xsoup.compile(bookIdXpath).evaluate(document).get());
-        chapter.setChapterId(Xsoup.compile(chapterIdXpath).evaluate(document).get());
-        chapter.setChapterUrl(Xsoup.compile(chapterUrlXpath).evaluate(document).get());
-        chapter.setChapterWordCounts(StringMatcherUtil.string2Integer(Xsoup.compile(chapterWordCountsXpath).evaluate(document).get()));
-        chapter.setWriteTime(Xsoup.compile(writeTimeXpath).evaluate(document).get());
+//        chapter.setBookId4Chapter(XSoupUtil.compile(bookIdXpath, document));
+        chapter.setChapterId(XSoupUtil.compile(chapterIdXpath, document));
+//        chapter.setChapterUrl(XSoupUtil.compile(chapterUrlXpath,document));
+        chapter.setChapterUrl(StringOperateUtil.urlCompletenessCheck(page.getUrl().get(),
+                XSoupUtil.compile(chapterUrlXpath, document)));
+        chapter.setChapterWordCounts(StringOperateUtil.string2Integer(XSoupUtil.compile(chapterWordCountsXpath, document)));
+        chapter.setWriteTime(XSoupUtil.compile(writeTimeXpath, document));
         return chapter;
     }
 
@@ -237,12 +271,15 @@ public class BookPageProcessor implements PageProcessor {
         bookSiteTemplate = findSiteTemplateBySiteId(xmlTemplateParser.getSiteTemplates(), "10001");
         contentRegexUrl = bookSiteTemplate.getBookPageTemplateMap().get(PageAttributeEnum.CONTENTPAGE.name()).getRegexUrl();
         chapterRegexUrl = bookSiteTemplate.getBookPageTemplateMap().get(PageAttributeEnum.CHAPTERPAGE.name()).getRegexUrl();
-        System.out.println(contentRegexUrl);
+//        System.out.println(contentRegexUrl+bookSiteTemplate.getSiteId()+bookSiteTemplate.getSiteName());
 //        readingRegexUrl = bookPageProcessor.bookSiteTemplate.getBookPageTemplateMap().get(PageAttributeEnum.READINGPAGE.name()).getRegexUrl();
 //        commentRegexUrl = bookPageProcessor.bookSiteTemplate.getBookPageTemplateMap().get(PageAttributeEnum.COMMENTPAGE.name()).getRegexUrl();
 //        rankingRegexUrl = bookPageProcessor.bookSiteTemplate.getBookPageTemplateMap().get(PageAttributeEnum.RANKINGPAGE.name()).getRegexUrl();
-        Spider.create(new BookPageProcessor()).addUrl("https://www.qidian.com").addPipeline(
-                new EBookFilePipeline("J:\\workspace\\peppa\\out\\production\\peppa\\generated")).thread(2).run();
+        if (bookSiteTemplate.getDomin().startsWith(DOMIN_URL_PREFIX)){
+            siteEntryUrlPrefix = DOMIN_URL_PREFIX;
+        }
+        Spider.create(new BookPageProcessor()).addUrl(bookSiteTemplate.getDomin()).addPipeline(
+                new EBookFilePipeline("J:\\workspace\\peppa\\out\\production\\peppa\\generated")).thread(5).run();
     }
 
 

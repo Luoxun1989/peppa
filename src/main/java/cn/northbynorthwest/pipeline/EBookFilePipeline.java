@@ -3,7 +3,6 @@ package cn.northbynorthwest.pipeline;
 import cn.northbynorthwest.bookcrawlers.book.Chapter;
 import cn.northbynorthwest.bookcrawlers.book.ElectronicBook;
 import cn.northbynorthwest.template.PageAttributeEnum;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import us.codecraft.webmagic.ResultItems;
@@ -48,9 +47,9 @@ public class EBookFilePipeline extends FilePersistentBase implements Pipeline {
         this.getFile(path);
         try {
             PrintWriter printContentWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(
-                    this.getFile(path + PATH_SEPERATOR + PageAttributeEnum.CONTENTPAGE.name())), "UTF-8"));
+                    this.getFile(path + PATH_SEPERATOR + PageAttributeEnum.CONTENTPAGE.name()),true), "UTF-8"));
             PrintWriter printChapterWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(
-                    this.getFile(path + PATH_SEPERATOR + PageAttributeEnum.CONTENTPAGE.name())), "UTF-8"));
+                    this.getFile(path + PATH_SEPERATOR + PageAttributeEnum.CHAPTERPAGE.name()),true), "UTF-8"));
             Iterator var5 = resultItems.getAll().entrySet().iterator();
             while (true) {
                 while (var5.hasNext()) {

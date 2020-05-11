@@ -31,8 +31,12 @@ public class ElectronicBook extends AbstractBook {
     private String chapterListUrl;
 
     public String toString() {
-        return String.format("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s", siteId, siteName, bookName, author, pseudonym, bookId,
-                bookUrl, isFinish, wordCounts, price, tag, className, chapterListUrl,introduction);
+        return String.format("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s", siteId, siteName, bookName, author, pseudonym,
+                bookId, bookUrl, isFinish, wordCounts, price, tag, className, chapterListUrl,introduction);
+    }
+    public String toMainInfoString() {
+        return String.format("%s|%s|%s|%s|%s|%s|%s", siteId, siteName, bookName, author, pseudonym,
+                bookId, bookUrl);
     }
 
     @Override

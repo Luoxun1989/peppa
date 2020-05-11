@@ -153,6 +153,8 @@ public class BookSiteTemplate extends SiteTemplate {
             return;
         }
 
+        String tableMainNodeXpath = elem.elementTextTrim("tableMainNode");
+        String bookId4ChapterXpath = elem.elementTextTrim("bookId4Chapter");
         String chapterNameXpath = elem.elementTextTrim("chapterName");
         String chapterIdXpath = elem.elementTextTrim("chapterId");
         String chapterWordsXpath = elem.elementTextTrim("chapterWordCounts");
@@ -160,6 +162,8 @@ public class BookSiteTemplate extends SiteTemplate {
         String chapterUrlXpath = elem.elementTextTrim("chapterUrl");
         BookPageTemplate bookPageTemplate = new BookPageTemplate(regexUrl, pageType, request);
         Map<String, String> nodeXpathMap = new HashMap<String, String>(5);
+        nodeXpathMap.put("tableMainNode", tableMainNodeXpath);
+        nodeXpathMap.put("bookId4Chapter", bookId4ChapterXpath);
         nodeXpathMap.put("chapterName", chapterNameXpath);
         nodeXpathMap.put("chapterId", chapterIdXpath);
         nodeXpathMap.put("chapterWordCounts", chapterWordsXpath);

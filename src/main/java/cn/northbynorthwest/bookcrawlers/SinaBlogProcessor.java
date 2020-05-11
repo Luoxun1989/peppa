@@ -2,6 +2,9 @@ package cn.northbynorthwest.bookcrawlers;
 
 
 import cn.northbynorthwest.template.PageAttributeEnum;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import us.codecraft.webmagic.Page;
@@ -23,38 +26,11 @@ import java.util.List;
  * @since 1.0.0
  */
 
-public class SinaBlogProcessor implements PageProcessor {
+public class SinaBlogProcessor {
 
     public static final String URL_LIST = "http://blog\\.sina\\.com\\.cn/s/articlelist_1487828712_0_\\d+\\.html";
 
     public static final String URL_POST = "http://blog\\.sina\\.com\\.cn/s/blog_\\w+\\.html";
-
-    private Site site = Site
-            .me()
-            .setDomain("blog.sina.com.cn")
-            .setSleepTime(3000)
-            .setUserAgent(
-                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31");
-
-    @Override
-    public void process(Page page) {
-        //列表页
-        if (page.getUrl().regex(URL_LIST).match()) {
-            page.addTargetRequests(page.getHtml().xpath("//div[@class=\"articleList\"]").links().regex(URL_POST).all());
-            page.addTargetRequests(page.getHtml().links().regex(URL_LIST).all());
-            //文章页
-        } else {
-            page.putField("title", page.getHtml().xpath("//div[@class='articalTitle']/h2"));
-            page.putField("content", page.getHtml().xpath("//div[@id='articlebody']//div[@class='articalContent']"));
-            page.putField("date",
-                    page.getHtml().xpath("//div[@id='articlebody']//span[@class='time SG_txtc']").regex("\\((.*)\\)"));
-        }
-    }
-
-    @Override
-    public Site getSite() {
-        return site;
-    }
 
     public static void main(String[] args) {
        /* String html = "J:\\workspace\\peppa\\conf\\22.html";
@@ -102,6 +78,17 @@ public class SinaBlogProcessor implements PageProcessor {
 //            System.out.println(list2.get(i));
 //        }*/
         System.out.println(PageAttributeEnum.CHAPTERPAGE.name());
-
+        String xpath="{'result-after':'首发时间：', 'result-before':'章节','id-in-url':'', 'xpath':'//a/@title'}";
+        if (xpath.contains("{") && xpath.contains("}")) {
+            JSONObject jsonObject = JSON.parseObject(xpath);
+            String newXpath = jsonObject.getString("xpath");
+            if (StringUtils.isEmpty(newXpath)) {
+                throw new IllegalArgumentException(xpath);
+            }
+            String afterOpString = jsonObject.getString("result-after");
+            String beforeOpString = jsonObject.getString("result-before");
+            String isIdExtractOpAction = jsonObject.getString("id-in-url");
+            System.out.println(newXpath+"..."+afterOpString+"..."+beforeOpString+"..."+isIdExtractOpAction);
+        }
     }
 }

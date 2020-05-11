@@ -1,28 +1,30 @@
 <templates>
+	<!--siteId，siteName，domin 必须填写-->
 	<template siteId='10001' siteName='起点中文网' encoding='utf-8' domin='https://www.qidian.com/'>
 		<pages>
-			<page attribute='contentpage' regexUrl='(https://book.qidian.com/info/\d+)' request='get' pageType='html'>
-				<bookName>/html/body/div/div[6]/div[1]/div[2]/h1/em</bookName>
-				<author>/html/body/div/div[6]/div[1]/div[2]/h1/span/a</author>
-				<pseudonym>/html/body/div/div[6]/div[1]/div[2]/h1/span/a</pseudonym>
-				<bookId>substring-after(/html/body/div/div[4]/span/a[4]@href,'info/')</bookId>
+			<!--attribute必填，regexUrl必填，且必须以https或者http开头 -->
+			<page attribute='contentpage' regexUrl='https://book.qidian.com/info/\d+' request='get' pageType='html'>
+				<bookName>/html/body/div/div[6]/div[1]/div[2]/h1/em/text()</bookName>
+				<author>/html/body/div/div[6]/div[1]/div[2]/h1/span/a/text()</author>
+				<pseudonym>/html/body/div/div[6]/div[1]/div[2]/h1/span/a/text()</pseudonym>
+				<bookId>{'id-in-url':'true', 'xpath':'/html/body/div/div[4]/span/a[4]/@href'}</bookId>
 				<bookUrl>/html/body/div/div[4]/span/a[4]/@href</bookUrl>
 				<isFinish>/html/body/div/div[6]/div[1]/div[2]/p[1]/span[1]</isFinish>
-				<wordCounts>/html/body/div/div[6]/div[4]/div[2]/div[1]/div/div[2]/ul/li[2]/em</wordCounts>
+				<wordCounts>{'result-before':'万','xpath':'/html/body/div/div[6]/div[4]/div[2]/div[1]/div/div[2]/ul/li[2]/em/text()'}</wordCounts>
 				<price></price>
-				<tag>/html/body/div/div[6]/div[4]/div[1]/div[1]/div[2]/ul/li[1]/div/p/a</tag>
-				<className>/html/body/div/div[6]/div[1]/div[2]/p[1]/a</className>
-				<introduction>/html/body/div/div[6]/div[4]/div[1]/div[1]/div[1]/p</introduction>
+				<tag>/html/body/div/div[6]/div[4]/div[1]/div[1]/div[2]/ul/li[1]/div/p/a/text()</tag>
+				<className>/html/body/div/div[6]/div[1]/div[2]/p[1]/a/text()</className>
+				<introduction>/html/body/div/div[6]/div[4]/div[1]/div[1]/div[1]/p/text()</introduction>
 				<chapterListUrl></chapterListUrl>
 			</page>
 			<page attribute='chapterpage' regexUrl='#Catalog' request='get' pageType='html'>
-				<tableMainNode>//*[@id="j-catalogWrap"]/div[1]/div/ul/li</tableMainNode>
-				<bookId4Chapter>substring-after(/html/body/div/div[4]/span/a[4]@href,'info/')</bookId4Chapter>
+				<tableMainNode>//*[@id="j-catalogWrap"]/div[1]/div/ul/li;//*[@id="j-catalogWrap"]/div[2]/div/ul/li</tableMainNode>
+				<bookId4Chapter>{'id-in-url':'true', 'xpath':'/html/body/div/div[4]/span/a[4]/@href'}</bookId4Chapter>
 				<chapterName>//a/text()</chapterName>
-				<chapterId>substring-after(//a/@data-cid,'chapter/')</chapterId>
+				<chapterId>{'id-in-url':'true', xpath:'//a/@data-cid'}</chapterId>
 				<chapterUrl>//a/@data-cid</chapterUrl>
-				<chapterWordCounts>substring-after(//a/@title,'章节字数：')</chapterWordCounts>
-				<writeTime>substring-before(substring-after(//a/@title,'首发时间：'),'章节')</writeTime>
+				<chapterWordCounts>{'result-after':'章节字数：', 'xpath':'//a/@title'}</chapterWordCounts>
+				<writeTime>{'result-after':'首发时间：', 'result-before':'章节', 'xpath':'//a/@title'}</writeTime>
 			</page>
 		</pages>
 	</template>

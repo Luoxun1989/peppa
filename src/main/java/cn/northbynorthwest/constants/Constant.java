@@ -39,6 +39,9 @@ public interface Constant {
     String SITE_PAGE_REQUEST_ATTR="site.page.request.attr";
     String SITE_PAGE_PAGETYPE_ATTR="site.page.pageType.attr";
 
+    String SITE_URL_SUFFIX="{}";
+//    String SITE_ITEMID_PREFFIX="{}";
     //book
+
 
 }
