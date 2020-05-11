@@ -19,10 +19,13 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.JedisPool;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
+import us.codecraft.webmagic.scheduler.BloomFilterDuplicateRemover;
+import us.codecraft.webmagic.scheduler.RedisScheduler;
 import us.codecraft.xsoup.Xsoup;
 
 import java.util.ArrayList;
@@ -278,8 +281,13 @@ public class BookPageProcessor implements PageProcessor {
         if (bookSiteTemplate.getDomin().startsWith(DOMIN_URL_PREFIX)){
             siteEntryUrlPrefix = DOMIN_URL_PREFIX;
         }
+        JedisPool pool = new JedisPool();
+        //自定义EBookFilePipeline，同时可新增直接写到数据库的pipeline
+        //使用RedisScheduler调度，便于分布式爬取
+        //使用布隆过滤器去重
         Spider.create(new BookPageProcessor()).addUrl(bookSiteTemplate.getDomin()).addPipeline(
-                new EBookFilePipeline("J:\\workspace\\peppa\\out\\production\\peppa\\generated")).thread(5).run();
+                new EBookFilePipeline("J:\\workspace\\peppa\\out\\production\\peppa\\generated")).
+                setScheduler(new RedisScheduler(pool).setDuplicateRemover(new BloomFilterDuplicateRemover(10))).thread(5).run();
     }
 
 
