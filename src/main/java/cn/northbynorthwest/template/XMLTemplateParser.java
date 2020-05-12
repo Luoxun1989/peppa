@@ -29,10 +29,12 @@ public class XMLTemplateParser {
     private List<BookSiteTemplate> siteTemplates = null;
     public static XMLTemplateParser getInstance()
     {
-        synchronized (XMLTemplateParser.class){
-            if (xmlFileParser == null)
-            {
-                xmlFileParser = new XMLTemplateParser();
+        if(xmlFileParser == null){
+            synchronized (XMLTemplateParser.class){
+                if (xmlFileParser == null)
+                {
+                    xmlFileParser = new XMLTemplateParser();
+                }
             }
         }
         return xmlFileParser;

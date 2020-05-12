@@ -3,6 +3,7 @@ package cn.northbynorthwest.bookcrawlers;
 import cn.northbynorthwest.bookcrawlers.book.Chapter;
 import cn.northbynorthwest.bookcrawlers.book.ElectronicBook;
 import cn.northbynorthwest.constants.Constant;
+import cn.northbynorthwest.db.JedisPoolManager;
 import cn.northbynorthwest.pipeline.EBookFilePipeline;
 import cn.northbynorthwest.template.BookPageTemplate;
 import cn.northbynorthwest.template.BookSiteTemplate;
@@ -88,7 +89,7 @@ public class BookPageProcessor implements PageProcessor {
             parserChapterPageInfo(page);
         } else if (StringOperateUtil.match(url, contentRegexUrl)) {
             logger.info("this is content page, execute content page parsing");
-            parserContentPageInfo(page);
+//            parserContentPageInfo(page);
         }  else if (StringOperateUtil.match(url, readingRegexUrl)) {
             parserReadingPageInfo(page);//TODO
         } else if (StringOperateUtil.match(url, commentRegexUrl)) {
@@ -281,13 +282,13 @@ public class BookPageProcessor implements PageProcessor {
         if (bookSiteTemplate.getDomin().startsWith(DOMIN_URL_PREFIX)){
             siteEntryUrlPrefix = DOMIN_URL_PREFIX;
         }
-        JedisPool pool = new JedisPool();
+        JedisPool jedisPool = JedisPoolManager.getRedisPool();
         //自定义EBookFilePipeline，同时可新增直接写到数据库的pipeline
         //使用RedisScheduler调度，便于分布式爬取
         //使用布隆过滤器去重
         Spider.create(new BookPageProcessor()).addUrl(bookSiteTemplate.getDomin()).addPipeline(
                 new EBookFilePipeline("J:\\workspace\\peppa\\out\\production\\peppa\\generated")).
-                setScheduler(new RedisScheduler(pool).setDuplicateRemover(new BloomFilterDuplicateRemover(10))).thread(5).run();
+                setScheduler(new RedisScheduler(jedisPool).setDuplicateRemover(new BloomFilterDuplicateRemover(10))).thread(5).run();
     }
 
 

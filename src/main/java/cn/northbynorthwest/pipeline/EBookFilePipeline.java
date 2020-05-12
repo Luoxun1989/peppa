@@ -46,6 +46,7 @@ public class EBookFilePipeline extends FilePersistentBase implements Pipeline {
         String path = this.path + PATH_SEPERATOR + task.getUUID() + PATH_SEPERATOR + format.format(new Date());
         this.getFile(path);
         try {
+            //追加模式写入数据
             PrintWriter printContentWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(
                     this.getFile(path + PATH_SEPERATOR + PageAttributeEnum.CONTENTPAGE.name()),true), "UTF-8"));
             PrintWriter printChapterWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(

@@ -1,12 +1,16 @@
 package cn.northbynorthwest.bookcrawlers;
 
 
+import cn.northbynorthwest.db.JedisPoolManager;
 import cn.northbynorthwest.template.PageAttributeEnum;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
@@ -14,7 +18,9 @@ import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.xsoup.Xsoup;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -77,18 +83,19 @@ public class SinaBlogProcessor {
 //        for (int i = 0; i < list2.size(); i++) {
 //            System.out.println(list2.get(i));
 //        }*/
-        System.out.println(PageAttributeEnum.CHAPTERPAGE.name());
-        String xpath="{'result-after':'首发时间：', 'result-before':'章节','id-in-url':'', 'xpath':'//a/@title'}";
-        if (xpath.contains("{") && xpath.contains("}")) {
-            JSONObject jsonObject = JSON.parseObject(xpath);
-            String newXpath = jsonObject.getString("xpath");
-            if (StringUtils.isEmpty(newXpath)) {
-                throw new IllegalArgumentException(xpath);
-            }
-            String afterOpString = jsonObject.getString("result-after");
-            String beforeOpString = jsonObject.getString("result-before");
-            String isIdExtractOpAction = jsonObject.getString("id-in-url");
-            System.out.println(newXpath+"..."+afterOpString+"..."+beforeOpString+"..."+isIdExtractOpAction);
-        }
+        JedisPool jedisPool = JedisPoolManager.getRedisPool();
+
+        Jedis jedis = jedisPool.getResource();
+        Map<String,String> cartInfo = new HashMap<>();
+        cartInfo.put("10088","1");
+        cartInfo.put("10099","2");
+        jedis.hmset("cart:1001",cartInfo);
+        jedis.hset("cart:1001","10089","3");
+        System.out.println(jedis.hget("cart:1001","10088"));
+        System.out.println(jedis.hget("cart:1001","10099"));
+        System.out.println(jedis.hgetAll("cart:1001"));
+        System.out.println(jedis.hmget("cart:1001","10088","10099"));
+        System.out.println(jedis.hlen("cart:1001"));
+        jedis.close();
     }
 }

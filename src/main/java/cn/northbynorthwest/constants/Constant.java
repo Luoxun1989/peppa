@@ -43,5 +43,14 @@ public interface Constant {
 //    String SITE_ITEMID_PREFFIX="{}";
     //book
 
+    //redis
+    String JEDISPOOL_HOST="jedisPool.host";
+    String JEDISPOOL_PORT="jedisPool.port";
+    String JEDISPOOL_MAXACTIVE="jedisPool.maxActive";
+    String JEDISPOOL_MAXIDLE="jedisPool.maxIdle";
+    String JEDISPOOL_MAXWAIT="jedisPool.maxWait";
+    String JEDISPOOL_TESTONBORROW="jedisPool.testOnBorrow";
+    String JEDISPOOL_TESTONRETURN="jedisPool.testOnReturn";
+
 
 }
