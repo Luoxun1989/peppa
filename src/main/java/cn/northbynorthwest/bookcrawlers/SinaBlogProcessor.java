@@ -89,13 +89,17 @@ public class SinaBlogProcessor {
         Map<String,String> cartInfo = new HashMap<>();
         cartInfo.put("10088","1");
         cartInfo.put("10099","2");
-        jedis.hmset("cart:1001",cartInfo);
-        jedis.hset("cart:1001","10089","3");
+//        jedis.hmset("cart:1001",cartInfo);
+//        jedis.hset("cart:1001","10089","3");
         System.out.println(jedis.hget("cart:1001","10088"));
         System.out.println(jedis.hget("cart:1001","10099"));
         System.out.println(jedis.hgetAll("cart:1001"));
         System.out.println(jedis.hmget("cart:1001","10088","10099"));
         System.out.println(jedis.hlen("cart:1001"));
+        String key = "queue_www.qidian.com";
+        System.out.println(jedis.lpop(key));
+//        System.out.println(jedis.hlen("queue_www.qidian.com".getBytes()));
+//        System.out.println(jedis.llen("set_www.qidian.com"));
         jedis.close();
     }
 }

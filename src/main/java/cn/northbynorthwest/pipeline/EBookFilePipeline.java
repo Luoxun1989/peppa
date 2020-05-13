@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * “Go Further进无止境” <br>
@@ -30,7 +31,7 @@ import java.util.Map;
 public class EBookFilePipeline extends FilePersistentBase implements Pipeline {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
-
+    private ReentrantLock reentrantLock = new ReentrantLock();
     public EBookFilePipeline() {
         this.setPath("/data/webmagic/");
     }
@@ -56,9 +57,19 @@ public class EBookFilePipeline extends FilePersistentBase implements Pipeline {
                 while (var5.hasNext()) {
                     Map.Entry<String, Object> entry = (Map.Entry) var5.next();
                     if (entry.getValue() instanceof ElectronicBook) {
-                        printContentWriter.println(entry.getValue().toString());
+                        try {
+                            reentrantLock.lock();
+                            printContentWriter.println(entry.getValue().toString());
+                        }finally {
+                            reentrantLock.unlock();
+                        }
                     } else if (entry.getValue() instanceof Chapter) {
-                        printChapterWriter.println(entry.getValue().toString());
+                        try {
+                            reentrantLock.lock();
+                            printChapterWriter.println(entry.getValue().toString());
+                        }finally {
+                            reentrantLock.unlock();
+                        }
                     } else {
                         //do Other
                     }

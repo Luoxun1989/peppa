@@ -65,7 +65,7 @@ public class BookPageProcessor implements PageProcessor {
     public void process(Page page) {
         //正常的详情页URL，同时也必须考虑省略http或者https前缀的URL匹配
         List<String> contentUrls = StringOperateUtil.extractUseMultipleTypeRegexUrl(page,contentRegexUrl,siteEntryUrlPrefix);
-//        page.addTargetRequests(contentUrls);
+        page.addTargetRequests(contentUrls);
         //章节页初始化URL必须以http或者https开头，如果xml文件中regexUrl字段Value不是两者开头，则默认章节页初始化URL是由详情页初始化URL和
         //Value拼接获得。
         if (!chapterRegexUrl.startsWith(siteEntryUrlPrefix)) {
@@ -89,7 +89,7 @@ public class BookPageProcessor implements PageProcessor {
             parserChapterPageInfo(page);
         } else if (StringOperateUtil.match(url, contentRegexUrl)) {
             logger.info("this is content page, execute content page parsing");
-//            parserContentPageInfo(page);
+            parserContentPageInfo(page);
         }  else if (StringOperateUtil.match(url, readingRegexUrl)) {
             parserReadingPageInfo(page);//TODO
         } else if (StringOperateUtil.match(url, commentRegexUrl)) {
@@ -286,9 +286,11 @@ public class BookPageProcessor implements PageProcessor {
         //自定义EBookFilePipeline，同时可新增直接写到数据库的pipeline
         //使用RedisScheduler调度，便于分布式爬取
         //使用布隆过滤器去重
+        RedisScheduler scheduler = new RedisScheduler(jedisPool);
+        scheduler.setDuplicateRemover(new BloomFilterDuplicateRemover(100000000));
         Spider.create(new BookPageProcessor()).addUrl(bookSiteTemplate.getDomin()).addPipeline(
                 new EBookFilePipeline("J:\\workspace\\peppa\\out\\production\\peppa\\generated")).
-                setScheduler(new RedisScheduler(jedisPool).setDuplicateRemover(new BloomFilterDuplicateRemover(10))).thread(5).run();
+                setScheduler(scheduler).thread(5).run();
     }
 
 
